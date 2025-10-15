@@ -925,23 +925,33 @@ class UltimateSubdomainFinder:
             "graphs", "machine_learning", "security", "compliance"
         ]
         for subdir in subdirs:
-            (self.output_dir / subdir).mkdir(exist_ok=True)
+            (self.output_dir / subdir).mkdir(exist_ok=True, parents=True)
 
         # Initialize database
         self.init_database()
 
     def init_database(self):
         """Initialize SQLite database for storing scan results"""
-        db_path = self.output_dir / "database" / "scan_results.db"
         try:
-            self.conn = sqlite3.connect(db_path)
+            db_path = self.output_dir / "database" / "scan_results.db"
+            
+            # Ensure database directory exists
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            self.conn = sqlite3.connect(str(db_path), timeout=30)
             self.cursor = self.conn.cursor()
             
-            # Create tables
+            # Enable WAL mode for better concurrency
+            self.cursor.execute("PRAGMA journal_mode=WAL")
+            self.cursor.execute("PRAGMA synchronous=NORMAL")
+            self.cursor.execute("PRAGMA cache_size=-64000")
+            self.cursor.execute("PRAGMA foreign_keys=ON")
+            
+            # Create tables with improved schema
             self.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS subdomains (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    subdomain TEXT UNIQUE,
+                    subdomain TEXT UNIQUE NOT NULL,
                     ip_addresses TEXT,
                     cname TEXT,
                     status_code INTEGER,
@@ -952,18 +962,19 @@ class UltimateSubdomainFinder:
                     ports TEXT,
                     first_seen DATETIME,
                     last_seen DATETIME,
-                    risk_score REAL,
+                    risk_score REAL DEFAULT 0.0,
                     service_type TEXT,
                     cloud_provider TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
             
             self.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS security_findings (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    type TEXT,
-                    subdomain TEXT,
+                    type TEXT NOT NULL,
+                    subdomain TEXT NOT NULL,
                     description TEXT,
                     threat_level TEXT,
                     evidence TEXT,
@@ -971,29 +982,61 @@ class UltimateSubdomainFinder:
                     cvss_score REAL,
                     cwe TEXT,
                     references TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (subdomain) REFERENCES subdomains (subdomain) ON DELETE CASCADE
                 )
             ''')
             
             self.cursor.execute('''
                 CREATE TABLE IF NOT EXISTS dns_records (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    subdomain TEXT,
-                    record_type TEXT,
-                    record_value TEXT,
+                    subdomain TEXT NOT NULL,
+                    record_type TEXT NOT NULL,
+                    record_value TEXT NOT NULL,
                     ttl INTEGER,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (subdomain) REFERENCES subdomains (subdomain) ON DELETE CASCADE,
+                    UNIQUE(subdomain, record_type, record_value)
                 )
             ''')
             
+            # Create indexes for better performance
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_subdomains_subdomain ON subdomains(subdomain)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_subdomains_risk_score ON subdomains(risk_score)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_security_findings_subdomain ON security_findings(subdomain)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_security_findings_threat_level ON security_findings(threat_level)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_dns_records_subdomain ON dns_records(subdomain)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_dns_records_type ON dns_records(record_type)')
+            
             self.conn.commit()
+            self.console.print("[green]✅ Database initialized successfully[/green]")
             
         except SqliteError as e:
-            self.console.print(f"[red]❌ Database error: {e}[/red]")
+            self.console.print(f"[red]❌ Database initialization error: {e}[/red]")
+            # Fallback: create in-memory database
+            try:
+                self.conn = sqlite3.connect(":memory:", timeout=30)
+                self.cursor = self.conn.cursor()
+                self.console.print("[yellow]⚠️ Using in-memory database as fallback[/yellow]")
+            except SqliteError as e2:
+                self.console.print(f"[red]❌ Critical database failure: {e2}[/red]")
+                self.conn = None
+                self.cursor = None
+
+    def __del__(self):
+        """Cleanup database connection when object is destroyed"""
+        try:
+            if hasattr(self, 'conn') and self.conn:
+                self.conn.close()
+        except:
+            pass
 
     def display_godmode_banner(self):
         """Display godmode banner with ultimate graphics"""
-        banner_text = pyfiglet.figlet_format("SUBENUM GOD MODE", font="big")
+        try:
+            banner_text = pyfiglet.figlet_format("SUBENUM GOD MODE", font="big")
+        except:
+            banner_text = "🚀 SUBENUM GOD MODE - ULTIMATE PRO\n"
         
         md_content = f"""
 # 🚀 SUBENUM GOD MODE - ULTIMATE PRO
@@ -1051,20 +1094,23 @@ class UltimateSubdomainFinder:
 
     def display_system_resources(self):
         """Display current system resource usage"""
-        cpu_percent = psutil.cpu_percent(interval=1)
-        memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
-        
-        resource_table = Table(title="⚡ System Resources", show_header=True)
-        resource_table.add_column("Resource", style="cyan")
-        resource_table.add_column("Usage", style="white")
-        resource_table.add_column("Status", style="green")
-        
-        resource_table.add_row("CPU", f"{cpu_percent}%", "🟢 Optimal" if cpu_percent < 80 else "🟡 High" if cpu_percent < 95 else "🔴 Critical")
-        resource_table.add_row("Memory", f"{memory.percent}%", "🟢 Optimal" if memory.percent < 80 else "🟡 High" if memory.percent < 95 else "🔴 Critical")
-        resource_table.add_row("Disk", f"{disk.percent}%", "🟢 Optimal" if disk.percent < 80 else "🟡 High" if disk.percent < 95 else "🔴 Critical")
-        
-        self.console.print(resource_table)
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            resource_table = Table(title="⚡ System Resources", show_header=True)
+            resource_table.add_column("Resource", style="cyan")
+            resource_table.add_column("Usage", style="white")
+            resource_table.add_column("Status", style="green")
+            
+            resource_table.add_row("CPU", f"{cpu_percent}%", "🟢 Optimal" if cpu_percent < 80 else "🟡 High" if cpu_percent < 95 else "🔴 Critical")
+            resource_table.add_row("Memory", f"{memory.percent}%", "🟢 Optimal" if memory.percent < 80 else "🟡 High" if memory.percent < 95 else "🔴 Critical")
+            resource_table.add_row("Disk", f"{disk.percent}%", "🟢 Optimal" if disk.percent < 80 else "🟡 High" if disk.percent < 95 else "🔴 Critical")
+            
+            self.console.print(resource_table)
+        except Exception as e:
+            self.console.print(f"[yellow]⚠️ Could not display system resources: {e}[/yellow]")
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=5)
     async def resolve_dns_ultimate(self, subdomain: str) -> Dict[str, List[str]]:
@@ -1091,11 +1137,12 @@ class UltimateSubdomainFinder:
     def store_dns_record(self, subdomain: str, record_type: str, value: str):
         """Store DNS record in database"""
         try:
-            self.cursor.execute(
-                "INSERT OR IGNORE INTO dns_records (subdomain, record_type, record_value) VALUES (?, ?, ?)",
-                (subdomain, record_type, value)
-            )
-            self.conn.commit()
+            if self.cursor and self.conn:
+                self.cursor.execute(
+                    "INSERT OR IGNORE INTO dns_records (subdomain, record_type, record_value) VALUES (?, ?, ?)",
+                    (subdomain, record_type, value)
+                )
+                self.conn.commit()
         except SqliteError as e:
             self.console.print(f"[yellow]⚠️ Failed to store DNS record: {e}[/yellow]")
 
@@ -1402,27 +1449,30 @@ class UltimateSubdomainFinder:
     def store_subdomain_result(self, result: SubdomainResult):
         """Store subdomain result in database"""
         try:
+            if not self.cursor or not self.conn:
+                return
+                
             self.cursor.execute('''
                 INSERT OR REPLACE INTO subdomains 
                 (subdomain, ip_addresses, cname, status_code, title, server, 
                  technologies, response_time, ports, first_seen, last_seen, 
-                 risk_score, service_type, cloud_provider)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 risk_score, service_type, cloud_provider, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             ''', (
                 result.subdomain,
-                ','.join(result.ips),
-                result.cname,
-                result.status_code,
-                result.title,
-                result.server,
-                ','.join(result.technologies),
-                result.response_time,
-                ','.join(map(str, result.ports)),
-                result.first_seen,
-                result.last_seen,
+                ','.join(result.ips) if result.ips else '',
+                result.cname or '',
+                result.status_code or 0,
+                result.title or '',
+                result.server or '',
+                ','.join(result.technologies) if result.technologies else '',
+                result.response_time or 0.0,
+                ','.join(map(str, result.ports)) if result.ports else '',
+                result.first_seen or datetime.now(),
+                result.last_seen or datetime.now(),
                 result.risk_score,
                 result.service_type.value,
-                result.cloud_provider
+                result.cloud_provider or ''
             ))
             self.conn.commit()
         except SqliteError as e:
@@ -2637,7 +2687,7 @@ class UltimateSubdomainFinder:
             
             # Database cleanup
             try:
-                if hasattr(self, 'conn'):
+                if hasattr(self, 'conn') and self.conn:
                     self.conn.close()
             except:
                 pass

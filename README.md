@@ -1,65 +1,168 @@
-# Subenum
-<<<<<<< HEAD
-# 🧠 QuQuSubEnum — Advanced Recon & Intelligence Framework
+<!-- README for SubEnum God Mode - ULTIMATE PRO (English) --><div align="center">⚡️ SUBENUM GOD MODE — ULTIMATE PRO ⚡️
 
-**QuQuSubEnum** is an advanced, modular reconnaissance and intelligence framework for ethical hackers, security researchers, and data analysts.  
-Built to combine OSINT, automation, and data science for powerful but responsible reconnaissance workflows.
+    
 
-**Author:** Moh Agus © 2025  
-**License:** MIT (see `LICENSE`)
+<p align="center">
+  <img src="https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif" alt="scan-demo" width="700" />
+</p>🧠 2000+ lines of advanced recon power — No API keys required — Built for hunters, researchers, and professionals.
+
+</div>
+---
+
+📘 Overview
+
+SubEnum God Mode — ULTIMATE PRO is an all-in-one subdomain enumeration framework that combines:
+
+🔍 Advanced DNS bruteforce and hybrid dictionary engines
+
+🌐 Certificate Transparency (CT) analysis, ASN & resolver intelligence
+
+🕸️ Deep JavaScript-enabled crawling and asset extraction
+
+⚙️ Port/service discovery and takeover detection
+
+🤖 ML-based risk analysis and clustering
+
+
+Designed for penetration testers, bug bounty hunters, and red teams who need high accuracy and scale.
+
 
 ---
 
-## 🚀 Project Summary
+💎 Highlights
 
-QuQuSubEnum provides:
-- Modular recon pipeline (passive → active → analysis)
-- Async scanning engine (throttling & rate limiting)
-- AI-assisted analysis (clustering, anomaly detection)
-- Visualizers: `networkx`, charts, wordclouds
-- Extensible architecture — integrate custom modules, outputs, and report formats
+Feature	Description
 
-This tool is designed for **ethical** research, training, and defensive security. It is **NOT** intended for illegal or unauthorized activity.
+Async DNS Engine	Multi-resolver, high-throughput async resolution with caching and retries
+CT & ASN Scan	Pulls certificates and historical SANs from crt.sh and other CT sources, ASN intelligence included
+Deep JS Crawler	Headless crawling with JS execution, discovers hidden endpoints and API leaks
+Takeover Detection	Automated detection for 25+ cloud providers and dangling CNAMEs
+PortScan Integration	Optional Nmap integration for 100+ common ports and service fingerprinting
+ML Anomaly Detection	DBSCAN clustering, entropy-based anomaly detection, and predictive risk scoring
+Interactive Reports	JSON, XLSX, and HTML reports with visualizations and filters
 
----
 
-## ✨ Features (Detailed)
-
-- **Passive Recon**
-  - WHOIS, DNS records, SSL/TLS info, tldextract
-  - HTTP fingerprinting, robots.txt parsing, sitemap discovery
-- **Active Recon (opt-in)**
-  - Port probes (throttled), HTTP crawls, form discovery
-  - Optional integration with `shodan` & `censys` (user-provided API keys)
-- **OSINT Enrichment**
-  - Subdomain enumeration, reverse DNS, certificate transparency logs
-- **Data Science & AI**
-  - Data clustering, anomaly detection (scikit-learn)
-  - Graph analysis with `networkx` and visual outputs
-- **Automation & Safety**
-  - Async engine with `asyncio` + `aiohttp`
-  - Built-in throttling, concurrency limits, and "safe mode"
-- **Reporting**
-  - Export JSON, CSV, and human-readable HTML reports
-- **Extensibility**
-  - Plugin hooks for input, transform, and output stages
 
 ---
 
-## ⚙️ System Requirements
+⚙️ Configuration
 
-- OS: Debian/Ubuntu/Kali or similar Linux (x86_64 recommended)
-- Python: 3.10+
-- Disk: 500MB+ (depends on outputs)
-- Network: Optional for external APIs/browsing
+Main configuration file: config.yaml
 
-### Native dependencies (Debian/Ubuntu/Kali example)
-```bash
-sudo apt update
-sudo apt install -y python3 python3-pip python3-venv build-essential \
- libssl-dev libffi-dev zlib1g-dev libjpeg-dev libpng-dev libfreetype-dev \
- libxml2-dev libxslt1-dev libopenblas-dev liblapack-dev gfortran rustc \
- libpcap-dev chromium chromedriver firefox-geckodriver
-=======
-AI-assisted project combining multiple artificial intelligence systems (ChatGPT, AgnesAI, DeepSeek) with human integration for smart automation and research.
->>>>>>> 97a3c5278cfb449f5c2509ff059f7746d1665607
+Add custom wordlists to data/wordlist.txt
+
+Tune max_threads, timeout, and async_limit according to your environment
+
+Use --no-ml flag to disable ML modules on low-memory systems
+
+
+
+---
+
+🧠 Machine Learning Module
+
+Analysis	Purpose
+
+Entropy Analysis	Detect unusually formatted subdomains and potential wildcard patterns
+DBSCAN Clustering	Group subdomains by similar network/feature profiles to find infrastructure clusters
+Predictive Risk	Estimate risk score (0.0–1.0) per subdomain based on exposures and history
+
+
+Feature extraction example:
+
+def extract_features(name):
+    return [
+        len(name),
+        name.count('.'),
+        name.count('-'),
+        sum(c.isdigit() for c in name),
+        sum(c.isalpha() for c in name),
+    ]
+
+
+---
+
+📊 Output Example
+
+output/example.com_YYYYMMDD_HHMMSS/
+├── reports/
+│   ├── ultimate_report.json
+│   ├── interactive_report.html
+│   └── export.xlsx
+├── screenshots/
+├── logs/
+└── db/scan_results.db
+
+Report JSON snippet:
+
+{
+  "domain": "example.com",
+  "found_subdomains": 153,
+  "critical_risk": ["admin.example.com", "api.internal.example.com"],
+  "avg_risk_score": 0.78
+}
+
+
+---
+
+🧩 Tags & Topics
+
+#SubdomainEnumeration #BugBounty #Recon #CyberSecurity
+#InformationGathering #MachineLearning #Automation #OpenSource
+#PythonTools #SecurityResearch #DNS #PortScanning
+#TakeoverDetection #DeepCrawl #AIRecon
+
+
+---
+
+🔮 Visual Assets Included
+
+🎞️ Demo GIF placeholder: /assets/demo-scan.gif (replace with your recorded demo)
+
+🖼️ SVG logo placeholder: /assets/logo.svg
+
+🏷️ HTML banner: /docs/banner.html
+
+📘 One-page cheat-sheet: /README_SHORT.md (optional)
+
+📗 How-to guide: /docs/HOWTO.md
+
+
+
+---
+
+📜 License
+
+MIT License © 2024–2025 SubEnum God Mode Contributors
+
+
+---
+
+⚠️ Responsible Use & Disclaimer
+
+This tool is powerful and can be misused. Only use it on systems you own or where you have explicit permission to test. Follow local laws and program rules (e.g., bug bounty scope). We are not responsible for illegal use.
+
+Do NOT use this tool to:
+
+Attack systems without authorization
+
+Perform DDoS, exploit vulnerabilities, or conduct illegal activities
+
+
+
+---
+
+💬 Support & Contact
+
+📧 Email: fangyuan1798p@gmail.com
+🐙 GitHub: Issues & Discussions
+💬 Telegram (optional): t.me/subenumgodmode
+
+
+---
+
+<div align="center">🌟 If you like this project, please ⭐ the repository on GitHub!
+
+Built with ❤️ by the SubEnum God Mode Team
+
+</div>
