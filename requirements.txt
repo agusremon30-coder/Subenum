@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚀 SUBENUM GOD MODE - Ultimate Dependencies
 # Core Networking & HTTP
 requests>=2.31.0
@@ -56,3 +57,20 @@ asyncio-throttle>=1.0.0
 
 # Advanced Security Features
 pyOpenSSL>=23.2.0
+=======
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+colorama>=0.4.6
+tldextract>=3.4.0
+fake-useragent>=1.1.0
+pyfiglet>=0.8.post1
+aiohttp>=3.8.0
+asyncio-throttle>=1.0.2
+rich>=13.0.0
+python-nmap>=0.7.1
+cryptography>=38.0.0
+dnspython>=2.3.0
+urllib3>=1.26.0
+pyopenssl>=23.2.0
+lxml>=4.9.0
+>>>>>>> 97a3c5278cfb449f5c2509ff059f7746d1665607

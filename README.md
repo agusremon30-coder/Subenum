@@ -1,4 +1,5 @@
 # Subenum
+<<<<<<< HEAD
 # 🧠 QuQuSubEnum — Advanced Recon & Intelligence Framework
 
 **QuQuSubEnum** is an advanced, modular reconnaissance and intelligence framework for ethical hackers, security researchers, and data analysts.  
@@ -59,3 +60,6 @@ sudo apt install -y python3 python3-pip python3-venv build-essential \
  libssl-dev libffi-dev zlib1g-dev libjpeg-dev libpng-dev libfreetype-dev \
  libxml2-dev libxslt1-dev libopenblas-dev liblapack-dev gfortran rustc \
  libpcap-dev chromium chromedriver firefox-geckodriver
+=======
+AI-assisted project combining multiple artificial intelligence systems (ChatGPT, AgnesAI, DeepSeek) with human integration for smart automation and research.
+>>>>>>> 97a3c5278cfb449f5c2509ff059f7746d1665607
